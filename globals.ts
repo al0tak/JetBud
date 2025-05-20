@@ -24,4 +24,11 @@ export const accountCardColorsToPaths: Record<
 export const globalStyles = {
   defaultSpacing: 12,
   defaultSpacingWide: 24,
+  defaultShadow: {
+    offsetX: 0,
+    offsetY: 3,
+    color: "rgba(0, 0, 0, 0.2)",
+    spreadDistance: 3,
+    blurRadius: 7,
+  },
 };

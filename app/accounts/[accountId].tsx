@@ -1,51 +1,49 @@
 import ScreenBackground from "@/components/ScreenBackground";
-import { accountCardColorsToPaths, globalStyles } from "@/globals";
+import { globalStyles } from "@/globals";
 import { useAppState } from "@/store/useAppState";
-import { router, useLocalSearchParams } from "expo-router";
-import { ArrowLeftIcon } from "lucide-react-native";
-import React from "react";
-import { ImageBackground, Pressable, Text, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import React, { useRef } from "react";
+import { Animated, Text, View } from "react-native";
 
 const Account = () => {
   const localParams = useLocalSearchParams();
   const accountId = localParams.accountId as string;
   const getAccountById = useAppState(({ getAccountById }) => getAccountById);
   const account = getAccountById(accountId);
+  const transactions = useAppState(({ transactions }) => transactions);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   if (!account) {
     return <Text>Account not found</Text>;
   }
 
+  const thisAccountTransactions = transactions.filter(
+    (t) => t.accountId === accountId
+  );
+
+  const totalAmount = thisAccountTransactions.reduce(
+    (acc, curr) => acc + curr.amount,
+    0
+  );
+
   return (
     <ScreenBackground>
       <View
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          padding: globalStyles.defaultSpacingWide,
+          position: "absolute",
+          top: 0,
+          left: 0,
         }}
       >
-        <Pressable
-          onPress={() => router.back()}
+        <Animated.View
           style={{
-            flexDirection: "row",
-            width: 48,
-            height: 48,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <ArrowLeftIcon size={34} stroke="black" />
-        </Pressable>
-
-        <ImageBackground
-          source={accountCardColorsToPaths[account.color]}
-          style={{
-            flex: 1,
-            overflow: "hidden",
-            borderRadius: globalStyles.defaultSpacing,
-            borderWidth: 1,
-            height: 48,
+            justifyContent: "space-between",
+            width: "100%",
+            height: 150,
+            borderRadius: globalStyles.defaultSpacingWide,
+            padding: globalStyles.defaultSpacingWide,
             boxShadow: [
               {
                 offsetX: 0,
@@ -55,31 +53,71 @@ const Account = () => {
                 blurRadius: 7,
               },
             ],
+
+            opacity: scrollY.interpolate({
+              inputRange: [0, 100],
+              outputRange: [1, 0.1],
+            }),
+
+            transform: [
+              {
+                translateY: scrollY.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [0, -40],
+                }),
+              },
+              {
+                scale: scrollY.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [1, 0.9],
+                }),
+              },
+            ],
           }}
         >
-          <View
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.6)",
-              borderRadius: globalStyles.defaultSpacing - 1,
-              borderWidth: 1,
-              borderColor: "rgba(255, 255, 255, 0.8)",
-              height: "100%",
-              justifyContent: "center",
-            }}
+          <Text style={{ fontSize: 24 }}>{account.name}</Text>
+          <Text
+            style={{ fontSize: 34, fontWeight: "bold", textAlign: "right" }}
           >
-            <Text
-              style={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}
-            >
-              {account.name}
-            </Text>
-          </View>
-        </ImageBackground>
-        <View style={{ width: 48 }} />
+            {totalAmount}
+          </Text>
+        </Animated.View>
       </View>
 
-      <View>
-        <Text>Transactions</Text>
-      </View>
+      <Animated.ScrollView
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
+      >
+        <View
+          style={{
+            position: "relative",
+            top: 200,
+            marginBottom: 200,
+            borderTopLeftRadius: globalStyles.defaultSpacingWide,
+            borderTopRightRadius: globalStyles.defaultSpacingWide,
+            padding: globalStyles.defaultSpacingWide,
+          }}
+        >
+          <Text
+            style={{ fontSize: 34, fontWeight: "bold", textAlign: "center" }}
+          >
+            Transactions
+          </Text>
+          <View>
+            {transactions.map((transaction) => (
+              <View key={transaction.id} style={{ padding: 40 }}>
+                <Text>{transaction.name}</Text>
+                <Text>{transaction.amount}</Text>
+              </View>
+            ))}
+            <Text>End of list</Text>
+          </View>
+        </View>
+      </Animated.ScrollView>
     </ScreenBackground>
   );
 };
