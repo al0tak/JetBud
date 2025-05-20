@@ -2,7 +2,7 @@ import { initAndMigrateDb } from "@/database/schema";
 import { useAppState } from "@/store/useAppState";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const initStore = useAppState(({ initStore }) => initStore);

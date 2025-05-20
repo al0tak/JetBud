@@ -22,7 +22,9 @@ export default function Index() {
         </Pressable>
       </View>
 
-      <AccountCardListBlock />
+      <View style={{ padding: globalStyles.defaultSpacing }}>
+        <AccountCardListBlock />
+      </View>
     </ScreenBackground>
   );
 }
